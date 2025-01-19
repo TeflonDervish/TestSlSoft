@@ -15,6 +15,7 @@
         <lombok.version>1.18.30</lombok.version>
         <selenium.version>4.27.0</selenium.version>
         <selenium.chromeDriver.version>4.27.0</selenium.chromeDriver.version>
+        <jackson.databind>2.18.2</jackson.databind>
     </properties>
 
     <dependencies>
@@ -40,8 +41,12 @@
             <version>RELEASE</version>
             <scope>test</scope>
         </dependency>
-
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.databind}</version>
+        </dependency>
     </dependencies>
-
 
 </project>

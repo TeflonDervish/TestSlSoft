@@ -111,8 +111,7 @@ public class SearchResultPage {
             }
         }
 
-        if (windowToSwitch == null) System.out.println("Открыто только одно окно");
-        else {
+        if (windowToSwitch != null) {
             webDriver.close();
             webDriver.switchTo().window(windowToSwitch);
         }

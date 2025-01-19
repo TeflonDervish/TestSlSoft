@@ -47,10 +47,15 @@ public class MainPage {
                         .ignoring(StaleElementReferenceException.class);
         actions = new Actions(webDriver);
 
+        //Обычное ожидание
+        webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(duration));
+
         // Открытие браузера
         webDriver.get("https://market.yandex.ru/");
+
         // Предназначен для закрытия всплывающего окна, с просьбой войти в аккаунт
         actions.click().perform();
+
         // Закрываем все лишние открывшиеся окна
         closeAllWindowsExceptTheCurrent();
     }

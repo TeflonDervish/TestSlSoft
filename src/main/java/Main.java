@@ -31,7 +31,7 @@ public class Main {
 
         System.out.println(productPage.takeInfoFromPage());
 
-        driver.quit();
+        driver.get("https://market.yandex.ru/");
 
 
     }
