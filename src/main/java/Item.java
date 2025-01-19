@@ -5,7 +5,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class Item {
 
-    private String name;
-    private String price;
+    private String name; // Название продукта
+    private String price; // Цента продукта
 
 }
