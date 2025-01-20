@@ -1,8 +1,9 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.qameta.allure.Attachment;
+import lombok.extern.slf4j.Slf4j;
 import model.Item;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.testng.Assert;
 import org.testng.annotations.*;
 import org.testng.asserts.SoftAssert;
 import service.CheckData;
@@ -15,17 +16,22 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class YandexMarketTest {
 
     private WebDriver driver;
     private MainPage mainPage;
 
+    private String testDataFile;
+
     /**
      * Инициализируем драйвер
      */
     @BeforeClass
-    public void setUpClass() {
+    @Parameters({"testData"})
+    public void setUpClass(String testData) {
         driver = new ChromeDriver();
+        testDataFile = testData;
     }
 
     /**
@@ -44,12 +50,11 @@ public class YandexMarketTest {
     @DataProvider(name = "searchData")
     public Map<String, String>[] searchDataProvider() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, String>[] testData = objectMapper.readValue(
-                new File("src/test/resources/test-data.json"),
+
+        return objectMapper.readValue(
+                new File(testDataFile),
                 Map[].class
         );
-
-        return testData;
     }
 
     /**
@@ -60,27 +65,39 @@ public class YandexMarketTest {
      * 4) Отсортировать по дешевизне<br>
      * 5) Кликнуть на первый элемент<br>
      * 6) Получить информацию о магазине и цене<br>
-     * @param testData
+     * @param testData - Тестовые данные
      */
-    @Test(description = "Поиск товаров Яндекс Маркете, сортировка и проверка результатов"
-            ,dataProvider = "searchData")
+    @Test(description = "Поиск товаров Яндекс Маркете, сортировка и проверка результатов",
+            dataProvider = "searchData")
     public void searchTest(Map<String, String> testData) {
         SoftAssert softAssert = new SoftAssert();
 
+        saveTestLog(testData.get("searchQuery"));
+
+        // 1) Глобальный запрос по странице
         SearchResultPage searchResultPage = mainPage.search(testData.get("searchQuery"));
+
+        // 2) Получение данных из сделанных запросов
         List<Item> items = searchResultPage.getItems();
 
-        softAssert.assertTrue(CheckData.checkItems(items, testData.get("searchQuery")) > 0.5
-                , "Количество правильно найденных элементов меньше трети");
+        // 3) Проверка кол-ва правильно найденных результатов, если их больше половины, то тест пройден
+        softAssert.assertTrue(CheckData.checkItems(items, testData.get("searchQuery")) > 0.5,
+                "Количество правильно найденных элементов меньше половины");
 
-
+        // 4) Нажать на кнопку с сортировкой подешевле
         searchResultPage.clickSort(SearchResultPage.SortType.CHEAPER);
+
+        // 5) Кликнуть на первый найденный элемент на странице
         ProductPage productPage = searchResultPage.clickFirst();
 
-        System.out.println(productPage.takeInfoFromPage());
+        // 6) Вывод в консоль информацию о цене и продавце
+        Item item = productPage.takeInfoFromPage();
+        saveTestLog(
+                "\tНазвание магазина: " + item.getShopName() +
+                        "\n\tЦена в магазине: " + item.getPrice()
+        );
 
         softAssert.assertAll();
-
     }
 
     /**
@@ -89,6 +106,11 @@ public class YandexMarketTest {
     @AfterClass
     public void tearDownClass() {
         driver.quit();
+    }
+
+    @Attachment(value = "Информация", type = "text/plain")
+    public String saveTestLog(String message) {
+        return message;
     }
 
 }

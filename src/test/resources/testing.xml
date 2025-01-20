@@ -1,0 +1,14 @@
+<suite name="YandexMarketTests" parallel="tests" thread-count="1">
+    <test name="Search Tests 1">
+        <parameter name="testData" value="src/test/resources/test-data-1.json"/>
+        <classes>
+            <class name="YandexMarketTest"/>
+        </classes>
+    </test>
+    <test name="Search Test 2">
+        <parameter name="testData" value="src/test/resources/test-data-2.json"/>
+        <classes>
+            <class name="YandexMarketTest"/>
+        </classes>
+    </test>
+</suite>

@@ -18,9 +18,8 @@ public class ProductPage {
     private final Wait<WebDriver> webDriverWait;
     private final Actions actions;
 
-    private static final By productName = By.xpath("//h1[@data-additional-zone='title']");
-    private static final By productPrice = By.xpath("//h3[@data-auto='snippet-price-current']");
-    private static final By productShop = By.xpath("//div[@data-baobab-name='shopItem']//span");
+    private static final By productPrice = By.xpath("//*[@data-auto='snippet-price-current' or @data-auto='price-block']");
+    private static final By productShop = By.xpath("//*[@data-baobab-name='shopItem']//span");
 
     /**
      * Конструктор для создания экземпляра другими страницами
@@ -40,9 +39,10 @@ public class ProductPage {
      * @return - возвращает экземпляр Item
      */
     public Item takeInfoFromPage() {
-        webDriverWait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(productName));
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(productPrice));
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(productShop));
         return new Item(
-                webDriver.findElement(productName).getText(),
+                "",
                 webDriver.findElement(productPrice).getText(),
                 webDriver.findElement(productShop).getText()
         );

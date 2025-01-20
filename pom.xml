@@ -15,7 +15,9 @@
         <lombok.version>1.18.30</lombok.version>
         <selenium.version>4.27.0</selenium.version>
         <selenium.chromeDriver.version>4.27.0</selenium.chromeDriver.version>
-        <jackson.databind>2.18.2</jackson.databind>
+        <jackson.databind.version>2.18.2</jackson.databind.version>
+        <logback.version>1.5.16</logback.version>
+        <allure.version>2.29.1</allure.version>
     </properties>
 
     <dependencies>
@@ -41,11 +43,20 @@
             <version>RELEASE</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.databind}</version>
+            <version>${jackson.databind.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-testng</artifactId>
+            <version>${allure.version}</version>
         </dependency>
     </dependencies>
 

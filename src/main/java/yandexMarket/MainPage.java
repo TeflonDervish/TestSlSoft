@@ -44,11 +44,12 @@ public class MainPage {
                         .withTimeout(Duration.ofSeconds(duration))
                         .pollingEvery(Duration.ofMillis(300))
                         .ignoring(ElementClickInterceptedException.class)
-                        .ignoring(StaleElementReferenceException.class);
+                        .ignoring(StaleElementReferenceException.class)
+                        .ignoring(NoSuchElementException.class);
         actions = new Actions(webDriver);
 
-        //Обычное ожидание
-        webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(duration));
+        // Неявное ожидание
+//        webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(duration));
 
         // Открытие браузера
         webDriver.get("https://market.yandex.ru/");

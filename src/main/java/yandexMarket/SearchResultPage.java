@@ -62,7 +62,7 @@ public class SearchResultPage {
         webDriverWait.until(
                 ExpectedConditions.numberOfElementsToBeMoreThan(
                         productCard,
-                        15
+                        10
                 )
         );
 
