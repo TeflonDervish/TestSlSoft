@@ -48,9 +48,6 @@ public class MainPage {
                         .ignoring(NoSuchElementException.class);
         actions = new Actions(webDriver);
 
-        // Неявное ожидание
-//        webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(duration));
-
         // Открытие браузера
         webDriver.get("https://market.yandex.ru/");
 
