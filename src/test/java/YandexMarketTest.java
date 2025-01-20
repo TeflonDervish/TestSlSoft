@@ -109,8 +109,7 @@ public class YandexMarketTest {
     }
 
     @Attachment(value = "Информация", type = "text/plain")
-    public String saveTestLog(String message) {
-        return message;
+    public void saveTestLog(String message) {
     }
 
 }
