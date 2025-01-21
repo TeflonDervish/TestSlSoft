@@ -44,7 +44,6 @@ public class YandexMarketTest {
     @Parameters({"testData"})
     public void setUpClass(@Optional("") String testData) {
         driver = new ChromeDriver();
-        driver.manage().window().maximize();
         testDataFile = testData;
     }
 
