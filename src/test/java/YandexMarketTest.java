@@ -1,3 +1,4 @@
+import ch.qos.logback.core.util.FileUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qameta.allure.Attachment;
 import io.qameta.allure.Description;
@@ -5,6 +6,10 @@ import io.qameta.allure.Flaky;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
 import model.Item;
+
+import org.apache.commons.io.FileUtils;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.annotations.*;
@@ -32,12 +37,14 @@ public class YandexMarketTest {
     private String testDataFile;
 
     /**
-     * Инициализируем драйвер
+     * Инициализируем драйвер<br>
+     * Получаем тестовый файл
      */
     @BeforeClass
     @Parameters({"testData"})
     public void setUpClass(@Optional("") String testData) {
         driver = new ChromeDriver();
+        driver.manage().window().maximize();
         testDataFile = testData;
     }
 
@@ -46,7 +53,7 @@ public class YandexMarketTest {
      */
     @BeforeMethod
     public void prepareTest() {
-        mainPage = new MainPage(driver);
+        mainPage = new MainPage(driver, 30);
         softAssert = new SoftAssert();
     }
 
@@ -87,6 +94,11 @@ public class YandexMarketTest {
 
         // 2) Получение данных из сделанных запросов
         List<Item> items = getItems();
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < items.size(); i++) {
+            result.append(items.get(i).getName()).append("\n\t").append(items.get(i).getPrice()).append("\n");
+        }
+        log(result.toString());
 
         // 3) Проверка кол-ва правильно найденных результатов, если их больше половины, то тест пройден
         checkData(items, testData.get("searchQuery"));
@@ -101,30 +113,65 @@ public class YandexMarketTest {
         Item item = takeInfoFromPage();
         log("\n\tНазвание магазина: " + item.getShopName() +
                 "\n\tЦена товара: " + item.getPrice());
+        saveScreenshot();
 
     }
 
     @Step("1) Поиска {query}")
-    public SearchResultPage makeGlobalSearch(String query) { return mainPage.search(query); }
+    public SearchResultPage makeGlobalSearch(String query) {
+        return mainPage.search(query);
+    }
 
     @Step("2) Получение данных из сделанных запросов")
-    public List<Item> getItems() { return searchResultPage.getItems(); }
+    public List<Item> getItems() {
+        return searchResultPage.getItems();
+    }
 
     @Step("3) Проверка есть ли искомый товар с списке")
-    public void checkData(List<Item> items, String query) { softAssert.assertTrue(CheckData.checkItems(items, query)); }
+    public void checkData(List<Item> items, String query) {
+        softAssert.assertTrue(CheckData.checkItems(items, query));
+    }
 
     @Step("4) Нажать на кнопку с сортировкой подешевле")
-    public void clickSort(SearchResultPage.SortType sortType) { searchResultPage.clickSort(sortType); }
+    public void clickSort(SearchResultPage.SortType sortType) {
+        searchResultPage.clickSort(sortType);
+    }
 
     @Step("5) Кликнуть на первый найденный элемент на странице")
-    public ProductPage clickFirst() { return searchResultPage.clickFirst(); }
+    public ProductPage clickFirst() {
+        return searchResultPage.clickFirst();
+    }
 
     @Step("6) Вывод в консоль информацию о цене и продавце")
-    @Flaky
-    public Item takeInfoFromPage() { return productPage.takeInfoFromPage();}
+    public Item takeInfoFromPage() {
+        return productPage.takeInfoFromPage();
+    }
 
-    @Attachment(value = "Лог", type = "text/plain")
-    public String log(String log) { return log; }
+    /**
+     * Метод для вывода логов в отчет
+     * @param log текстовое сообщение
+     * @return возвращает текст
+     */
+    @Attachment(value = "Информация во время выполнения", type = "text/plain")
+    public String log(String log) {
+        return log;
+    }
+
+    /**
+     * Метод для добавления скриншота в отчет
+     * @return возвращает скриншот страницы
+     */
+    @Attachment(value = "Страница с товаром", type = "image/png")
+    public byte[] saveScreenshot() {
+        try {
+            return FileUtils.readFileToByteArray(
+                    ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE)
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+    }
 
     /**
      * Вывести все ошибки

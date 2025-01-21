@@ -27,7 +27,7 @@ public class MainPage {
      * @param webDriver - driver, для выполнения действий
      */
     public MainPage(WebDriver webDriver) {
-        this(webDriver, 10);
+        this(webDriver, 15);
     }
 
     /**
