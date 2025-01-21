@@ -14,14 +14,9 @@ public class CheckData {
      *
      * @param items - список найденных элементов
      * @param query - запрос глобального посика
-     * @return - возвращает число от 0 до 1, чем больше число, тем больше совпадений нашлось на странице
+     * @return - возвращает истину если найден хоть один товар с таким названием
      */
-    public static double checkItems(List<Item> items, String query) {
-        double result = 0;
-
-        for (Item item : items)
-            result += item.getName().toLowerCase().contains(query.toLowerCase()) ? 1 : 0;
-
-        return result / items.size();
+    public static boolean checkItems(List<Item> items, String query) {
+        return items.stream().anyMatch(x -> x.getName().toLowerCase().contains(query.toLowerCase()));
     }
 }

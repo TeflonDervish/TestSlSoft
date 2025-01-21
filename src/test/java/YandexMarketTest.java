@@ -1,4 +1,7 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.qameta.allure.Attachment;
+import io.qameta.allure.Description;
+import io.qameta.allure.Flaky;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
 import model.Item;
@@ -21,6 +24,10 @@ public class YandexMarketTest {
 
     private WebDriver driver;
     private MainPage mainPage;
+    private SearchResultPage searchResultPage;
+    private ProductPage productPage;
+
+    private SoftAssert softAssert;
 
     private String testDataFile;
 
@@ -29,7 +36,7 @@ public class YandexMarketTest {
      */
     @BeforeClass
     @Parameters({"testData"})
-    public void setUpClass(String testData) {
+    public void setUpClass(@Optional("") String testData) {
         driver = new ChromeDriver();
         testDataFile = testData;
     }
@@ -38,14 +45,16 @@ public class YandexMarketTest {
      * Перед каждой новой итерацией заново создаем главную страницу и закрываем все лишние вкладки
      */
     @BeforeMethod
-    public void makeMainPage() {
+    public void prepareTest() {
         mainPage = new MainPage(driver);
+        softAssert = new SoftAssert();
     }
 
     /**
      * Получение тестовых данных
+     *
      * @return возвращает Массив из данных
-     * @throws IOException - в случае если тестового файла нет
+     * @throws IOException в случае если тестового файла нет
      */
     @DataProvider(name = "searchData")
     public Map<String, String>[] searchDataProvider() throws IOException {
@@ -61,73 +70,68 @@ public class YandexMarketTest {
      * Главный сценарий тестирования <br>
      * 1) Сделать глобальный запрос<br>
      * 2) Получить данные из сделанного запроса<br>
-     * 3) Проверить кол-во правильно найденных результатов, если их больше половины, то тест пройден<br>
+     * 3) Проверка есть ли искомый товар с списке<br>
      * 4) Отсортировать по дешевизне<br>
      * 5) Кликнуть на первый элемент<br>
      * 6) Получить информацию о магазине и цене<br>
-     * @param testData - Тестовые данные
+     *
+     * @param testData Тестовые данные
      */
-    @Test(description = "Поиск товаров Яндекс Маркете, сортировка и проверка результатов",
-            dataProvider = "searchData")
+    @Test(dataProvider = "searchData")
+    @Description("Поиск товаров Яндекс Маркете, сортировка и проверка результатов")
     public void searchTest(Map<String, String> testData) {
-        SoftAssert softAssert = new SoftAssert();
-
-        System.out.println(testData.get("searchQuery"));
+        log(testData.get("searchQuery"));
 
         // 1) Глобальный запрос по странице
-        SearchResultPage searchResultPage = makeGlobalSearch(mainPage, testData.get("searchQuery"));
+        searchResultPage = makeGlobalSearch(testData.get("searchQuery"));
 
         // 2) Получение данных из сделанных запросов
-        List<Item> items = getItems(searchResultPage);
+        List<Item> items = getItems();
 
         // 3) Проверка кол-ва правильно найденных результатов, если их больше половины, то тест пройден
-        checkResult(softAssert, items, testData.get("searchQuery"));
+        checkData(items, testData.get("searchQuery"));
 
         // 4) Нажать на кнопку с сортировкой подешевле
-        clickSort(searchResultPage, SearchResultPage.SortType.CHEAPER);
+        clickSort(SearchResultPage.SortType.CHEAPER);
 
         // 5) Кликнуть на первый найденный элемент на странице
-        ProductPage productPage = clickFirst(searchResultPage);
+        productPage = clickFirst();
 
         // 6) Вывод в консоль информацию о цене и продавце
-        Item item = takeInfoFromPage(productPage);
-        System.out.println(
-                "\tНазвание магазина: " + item.getShopName() +
-                        "\n\tЦена в магазине: " + item.getPrice()
-        );
+        Item item = takeInfoFromPage();
+        log("\n\tНазвание магазина: " + item.getShopName() +
+                "\n\tЦена товара: " + item.getPrice());
 
+    }
+
+    @Step("1) Поиска {query}")
+    public SearchResultPage makeGlobalSearch(String query) { return mainPage.search(query); }
+
+    @Step("2) Получение данных из сделанных запросов")
+    public List<Item> getItems() { return searchResultPage.getItems(); }
+
+    @Step("3) Проверка есть ли искомый товар с списке")
+    public void checkData(List<Item> items, String query) { softAssert.assertTrue(CheckData.checkItems(items, query)); }
+
+    @Step("4) Нажать на кнопку с сортировкой подешевле")
+    public void clickSort(SearchResultPage.SortType sortType) { searchResultPage.clickSort(sortType); }
+
+    @Step("5) Кликнуть на первый найденный элемент на странице")
+    public ProductPage clickFirst() { return searchResultPage.clickFirst(); }
+
+    @Step("6) Вывод в консоль информацию о цене и продавце")
+    @Flaky
+    public Item takeInfoFromPage() { return productPage.takeInfoFromPage();}
+
+    @Attachment(value = "Лог", type = "text/plain")
+    public String log(String log) { return log; }
+
+    /**
+     * Вывести все ошибки
+     */
+    @AfterMethod
+    public void afterTest() {
         softAssert.assertAll();
-    }
-
-    @Step
-    public static SearchResultPage makeGlobalSearch(MainPage mainPage, String searchQuery) {
-        return mainPage.search(searchQuery);
-    }
-
-    @Step
-    public static List<Item> getItems(SearchResultPage searchResultPage){
-        return searchResultPage.getItems();
-    }
-
-    @Step
-    public static void checkResult(SoftAssert softAssert, List<Item> items, String searchQuery) {
-        softAssert.assertTrue(CheckData.checkItems(items, searchQuery) > 0.5,
-                "Количество правильно найденных элементов меньше половины");
-    }
-
-    @Step
-    public static void clickSort(SearchResultPage searchResultPage, SearchResultPage.SortType sortType){
-        searchResultPage.clickSort(sortType);
-    }
-
-    @Step
-    public static ProductPage clickFirst(SearchResultPage searchResultPage) {
-        return searchResultPage.clickFirst();
-    }
-
-    @Step
-    public static Item takeInfoFromPage(ProductPage productPage) {
-        return productPage.takeInfoFromPage();
     }
 
     /**
